@@ -1,0 +1,29 @@
+name: Release anlegen
+
+# Bei jeder neuen Version (version.json + Format.apk) automatisch ein Release erstellen.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version lesen
+        run: |
+          echo "VERSION=$(jq -r .versionName version.json)" >> "$GITHUB_ENV"
+          jq -r .notes version.json > notes.txt
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Format ${{ env.VERSION }}
+          body_path: notes.txt
+          files: Format.apk
+          make_latest: true
